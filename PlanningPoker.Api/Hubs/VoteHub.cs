@@ -15,6 +15,5 @@ namespace PlanningPoker.Api.Hubs
         {
             return Clients.Group(vote.GroupName).SendAsync("sendMessageToAGroup", vote.Value);
         }
-
     }
 }
