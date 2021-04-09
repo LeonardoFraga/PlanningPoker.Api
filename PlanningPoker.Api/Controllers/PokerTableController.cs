@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using PlanningPoker.Api.Dtos;
 using PlanningPoker.Api.Models;
+using System;
 
 namespace PlanningPoker.Api.Controllers
 {
@@ -7,24 +10,34 @@ namespace PlanningPoker.Api.Controllers
     [Route("[controller]")]
     public class PokerTableController : Controller
     {
+
+        private readonly IDistributedCache _distributedCache;
+
+        public PokerTableController(IDistributedCache distributedCache)
+        {
+            _distributedCache = distributedCache;
+        }
+
         [HttpGet]
         public IActionResult GetPokerTableCards(string pokerTableId)
         {
-            // Get values from redis
+            var cards = _distributedCache.GetString(pokerTableId);
+            var pokerTable = new PokerTable(pokerTableId, cards.Split(','));
 
-            // var cards = string strResult = RedisConnector.Get<string>(pokerTableId);
-            var cards = "1,2,3,4,5,6,7";
-
-            return Ok(cards);
+            return new JsonResult(pokerTable);
         }
 
         [HttpPost]
-        public IActionResult CreatePokerTable([FromBody] PokerTable pokerTable)
+        public IActionResult CreatePokerTable([FromBody] PokerTableDto pokerTable)
         {
-            // Add values on redis
-            //RedisConnector.Set(pokerTable.PokerTableId, pokerTable.Cards);
+            // Add param validator
 
-            return Ok(new { Message = "Voted with success"});
+            _distributedCache.SetString(pokerTable.PokerTableId, pokerTable.Cards, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
+            });
+
+            return new JsonResult("Poker Table created with success.");
         }
     }
 }

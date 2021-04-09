@@ -26,12 +26,17 @@ namespace PlanningPoker.Api
                 .AllowCredentials());
             });
 
+            services.AddDistributedRedisCache(option =>
+            {
+                option.Configuration = Configuration["Redis:Configuration"];
+                option.InstanceName = Configuration["Redis:InstanceName"];
+            });
+
             services.AddSwaggerGen();
             services.AddSignalR();
             services.AddControllers();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
